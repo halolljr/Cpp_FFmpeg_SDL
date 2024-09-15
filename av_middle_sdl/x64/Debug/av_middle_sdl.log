@@ -1,0 +1,7 @@
+﻿  main.cpp
+D:\Alearn\ACPP\store\YSP\FFmpeg-Learn\Exer_Code\av_middle_sdl\include\libavutil\rational.h(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
+  (编译源文件“main.cpp”)
+  
+D:\Alearn\ACPP\store\YSP\FFmpeg-Learn\Exer_Code\av_middle_sdl\main.cpp(92,13): warning C4244: “参数”: 从“time_t”转换到“unsigned int”，可能丢失数据
+D:\Alearn\ACPP\store\YSP\FFmpeg-Learn\Exer_Code\av_middle_sdl\main.cpp(206,4): warning C4065: switch 语句包含“default”但是未包含“case”标签
+  av_middle_sdl.vcxproj -> D:\Alearn\ACPP\store\YSP\FFmpeg-Learn\Exer_Code\av_middle_sdl\x64\Debug\av_middle_sdl.exe
