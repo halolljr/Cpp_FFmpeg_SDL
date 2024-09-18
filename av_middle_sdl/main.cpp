@@ -1,3 +1,4 @@
+
 //@file		:	$itemname$
 //@author	:	jiarong Liang
 //@date		:	$time$
@@ -8,6 +9,10 @@
 #include <ctime>
 #include <fstream>
 #include <memory>
+#include <mutex>
+#include <thread>
+#include "source.h"
+#include "fuction.h"
 //库外文件必须在后面含入，不能先于本机头文件
 extern "C" {
 
@@ -22,11 +27,13 @@ extern "C" {
 #include <libavformat/avformat.h>
 
 }
-const int SDL_WINDOW_WIDTH = 608;
-const int SDL_WINDOW_HEIGHT = 368;
-const int VIDEO_WIDTH = 608;
-const int VIDEO_HEIGHT = 368;
-const std::string INPUTFILE("");
+//播放器窗口大小（可自由指定，一般按正规比例）
+int SDL_WINDOW_WIDTH = 608;
+int SDL_WINDOW_HEIGHT = 368;
+//yuv数据格式（要严格与容器的格式一致）
+const int VIDEO_WIDTH = 3840;
+const int VIDEO_HEIGHT = 2160;
+const std::string INPUTFILE_YUV("src_3840_2160.yuv");
 void demo_first() {
 	SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO);
 
@@ -141,13 +148,14 @@ void demo_second() {
 }
 
 void yuv_player_demo() {
-
+	//-----播放失败原因-----
+	//---YUV 文件的分辨率（宽和高）必须与原始视频文件（如 MP4）中提取出来的 YUV 数据的分辨率保持一致---
 	if (SDL_Init(SDL_INIT_VIDEO)) {
 		std::cerr << "Couldn't initialize SDL2 - "<<SDL_GetError() << std::endl;
 		return;
 	}
 
-	SDL_Window* window_ = SDL_CreateWindow("YUV_PLAYER", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOW_WIDTH, SDL_WINDOW_HEIGHT,SDL_WINDOW_SHOWN);
+	SDL_Window* window_ = SDL_CreateWindow("-----YUV_PLAYER-----", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOW_WIDTH, SDL_WINDOW_HEIGHT,SDL_WINDOW_OPENGL|SDL_WINDOW_RESIZABLE);
 	if (!window_) {
 		std::cerr << "Failed to create a SDL_Window , "<<SDL_GetError() << std::endl;
 		SDL_Quit();
@@ -183,30 +191,62 @@ void yuv_player_demo() {
 	try{
 		std::unique_ptr<Uint8[]> video_buff = std::make_unique<Uint8[]>(temp_yuv_frame_len);
 		
-		std::ifstream inputFile(INPUTFILE,std::ios::binary);
+		std::ifstream inputFile(INPUTFILE_YUV,std::ios::binary);
 		if (!inputFile.is_open()) {
-			throw std::runtime_error("Failed to open file" + INPUTFILE);
+			throw std::runtime_error("Failed to open file" + INPUTFILE_YUV);
 		}
-		inputFile.read(reinterpret_cast<char*>(video_buff.get()), yuv_frame_len);
+		inputFile.read((char*)(video_buff.get()), yuv_frame_len);
 		if (!inputFile) {
 			throw std::runtime_error("Failed to read data from yuv file");
 		}
 
-		Uint8* video_pos = video_buff.get();
+		//Uint8* video_pos = video_buff.get();
 
 		//创建线程
+		std::atomic_bool thread_exit(false);
+		std::mutex mtx;
+		std::thread t(refresh_video_timeer, std::ref(mtx), std::ref(thread_exit));
 		SDL_Event event;
+		SDL_Rect rect;
+		int video_buff_len = 0;
 		do 
 		{
 			SDL_WaitEvent(&event);
-			switch (event.type)
-			{
-			default:
+			if (event.type == EventType::REFRESH_EVENT) {
+				SDL_UpdateTexture(texture_, nullptr, video_buff.get(), VIDEO_WIDTH);
+				//FID:If window is resize
+				rect.x = 0;
+				rect.y = 0;
+				rect.w = SDL_WINDOW_WIDTH;
+				rect.h = SDL_WINDOW_HEIGHT;
+				SDL_RenderClear(renderer_);
+				SDL_RenderCopy(renderer_, texture_, nullptr, &rect);
+				SDL_RenderPresent(renderer_);
+
+				//read the remain block
+				if (!inputFile.read((char*)(video_buff.get()), yuv_frame_len)) {
+					std::lock_guard<std::mutex> lck(mtx);
+					thread_exit.store(true);
+					continue;
+				}
+			}
+			else if (event.type == SDL_WINDOWEVENT) {
+				SDL_GetWindowSize(window_, &SDL_WINDOW_WIDTH, &SDL_WINDOW_HEIGHT);
+			}
+			else if (event.type == SDL_QUIT) {
+				std::lock_guard<std::mutex> lck(mtx);
+				thread_exit.store(true);
+			}
+			else if (event.type == EventType::QUIT_EVENT) {
 				break;
 			}
-
-
 		} while (true);
+		t.join();
+		inputFile.close();
+		SDL_DestroyWindow(window_);
+		SDL_DestroyRenderer(renderer_);
+		SDL_DestroyTexture(texture_);
+		SDL_Quit();
 	}
 	catch (const std::bad_alloc& e){
 		std::cerr << "Memory allocation failed : " << e.what() <<std::endl;
@@ -222,7 +262,6 @@ void yuv_player_demo() {
 		SDL_DestroyTexture(texture_);
 		SDL_Quit();
 	}
-
 	return;
 }
 
@@ -230,8 +269,8 @@ int main(int argc, char* argv[])
 {
 	//demo_first();
 
-	demo_second();
+	//demo_second();
 
-	//yuv_player_demo();
+	yuv_player_demo();
 	return 0;
 }
