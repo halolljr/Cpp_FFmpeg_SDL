@@ -65,7 +65,7 @@ void av_logs() {
 }
 
 void av_abstract_audio() {
-
+	//---从流媒体文件中抽取音频-----
 	//-------2024.9.3-------
 	av_log_set_level(AV_LOG_DEBUG);
 	//1.打开多媒体文件
@@ -178,6 +178,7 @@ void av_abstract_audio() {
 }
 
 void av_abstract_video() {
+	//------从流媒体文件中抽取视频文件
 	//-------2024.9.4-------
 	av_log_set_level(AV_LOG_DEBUG);
 	//1.打开多媒体文件
@@ -277,6 +278,7 @@ void av_abstract_video() {
 }
 
 void av_turn() {
+	//-------格式转封装------
 	av_log_set_level(AV_LOG_DEBUG);
 	//1.打开多媒体文件
 	AVFormatContext* _iFmtCtx = nullptr;
@@ -390,6 +392,7 @@ void av_turn() {
 }
 
 void av_cut() {
+	//-----视频裁剪，从X秒开始，裁剪Y秒----------
 	av_log_set_level(AV_LOG_DEBUG);
 	//1.打开多媒体文件
 	AVFormatContext* _iFmtCtx = nullptr;
@@ -508,6 +511,7 @@ void av_cut() {
 }
 
 void av_mix() {
+	//-------一路音频流和一路视频流合为一个新文件-----------
 	av_log_set_level(AV_LOG_DEBUG);
 	AVFormatContext* _iFmtCtx1_A = nullptr;	//音频文件
 	AVFormatContext* _iFmtCtx2_V = nullptr;	//视频文件
@@ -660,6 +664,7 @@ void av_mix() {
 }
 
 void av_encodec_v() {
+	//-----从视频容器抽取编码格式
 	//1.查找编码器
 	av_log_set_level(AV_LOG_DEBUG);
 	const AVCodec* codec = nullptr;
@@ -770,6 +775,7 @@ void av_encodec_v() {
 }
 
 void av_encodec_a() {
+	//------从音频容器抽取编码格式
 	//1.查找编码器
 	av_log_set_level(AV_LOG_DEBUG);
 	const AVCodec* codec = nullptr;
@@ -905,7 +911,7 @@ void av_encodec_a() {
 }
 
 void av_decodec_pix_PGM() {
-
+	//---------容器格式转pgm文件-------
 	av_log_set_level(AV_LOG_DEBUG);
 
 	//1.打开多媒体文件
@@ -997,6 +1003,7 @@ void av_decodec_pix_PGM() {
 }
 
 void av_decodec_pix_BMP() {
+	//-------容器格式转bmp格式
 	av_log_set_level(AV_LOG_DEBUG);
 
 	//1.打开多媒体文件
