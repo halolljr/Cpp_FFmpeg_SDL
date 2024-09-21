@@ -76,11 +76,11 @@
 
 -i：
 
--vn：
+-vn：不包含视频流
 
 -ar：{a:audio，音频；r：rate，采样率（44.1k；48k；32k；16k）}
 
--ac2：{a：audio；c：channel，单声道，双声道（2），立体声，环绕立体声etc}
+-ac  2：{a：audio；c：channel，单声道，双声道（2），立体声，环绕立体声etc}（**有空格**）
 
 -f：数据存储格式{s16le：{s：有符号；16：每一位数值用16位表示；l：小头；e：}}
 
@@ -250,6 +250,8 @@ av_log()：{1：；2：打印的日志信息级别；3：；4：}
 
 #### 5.1 渲染SDL窗口
 
+**SDL_Init()返回值为0说明成功**
+
 ![屏幕截图 2024-09-12 234237](images\五\屏幕截图 2024-09-12 234237.png)
 
 ![7e3fb19f50907b94df8c374e5693b3d](images\五\7e3fb19f50907b94df8c374e5693b3d.jpg)
@@ -295,3 +297,13 @@ av_log()：{1：；2：打印的日志信息级别；3：；4：}
 **注意大坑：**
 
 ![屏幕截图 2024-09-18 205244](images\五\屏幕截图 2024-09-18 205244.png)
+
+#### 5.6 实现pcm播放器
+
+![d2cfedeaa6a57ebab404dd47ab5a47f](images\五\d2cfedeaa6a57ebab404dd47ab5a47f.jpg)
+
+![dd62ec2a88dc89c8cb545ef55927c73](images\五\dd62ec2a88dc89c8cb545ef55927c73.jpg)
+
+![98704ee3afbfd0f217d40cffd54a3b6](images\五\98704ee3afbfd0f217d40cffd54a3b6.jpg)
+
+**SDL_OpenAudio()返回0代表打开成功**
