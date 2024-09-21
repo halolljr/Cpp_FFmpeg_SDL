@@ -23,3 +23,5 @@ extern "C" {
 }
 
 void refresh_video_timeer(std::mutex& mtx,std::atomic_bool& thread_exit);
+void destroy_sdl(SDL_Window* window,SDL_Renderer* renderer,SDL_Texture* texture);
+void read_audio_data(void* udata, Uint8* stream, int len);

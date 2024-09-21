@@ -11,6 +11,7 @@
 #include <memory>
 #include <mutex>
 #include <thread>
+#include <filesystem>
 #include "source.h"
 #include "fuction.h"
 //库外文件必须在后面含入，不能先于本机头文件
@@ -34,6 +35,11 @@ int SDL_WINDOW_HEIGHT = 368;
 const int VIDEO_WIDTH = 3840;
 const int VIDEO_HEIGHT = 2160;
 const std::string INPUTFILE_YUV("src_3840_2160.yuv");
+const std::string INPUTFILE_PCM("src.pcm");
+const std::string DIRECTORY("source");
+const int BLOCK_SIZE = 4096000;
+const int FREQUENCE = 44100;
+const int CHANNELS = 2;
 void demo_first() {
 	SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO);
 
@@ -190,8 +196,11 @@ void yuv_player_demo() {
 	}
 	try{
 		std::unique_ptr<Uint8[]> video_buff = std::make_unique<Uint8[]>(temp_yuv_frame_len);
-		
-		std::ifstream inputFile(INPUTFILE_YUV,std::ios::binary);
+		std::string fullpath(DIRECTORY + "/" + INPUTFILE_YUV);
+		if (!std::filesystem::exists(DIRECTORY)) {
+			std::filesystem::create_directory(DIRECTORY);
+		}
+		std::ifstream inputFile(fullpath,std::ios::binary);
 		if (!inputFile.is_open()) {
 			throw std::runtime_error("Failed to open file" + INPUTFILE_YUV);
 		}
@@ -265,12 +274,90 @@ void yuv_player_demo() {
 	return;
 }
 
+void pcm_player_demo() {
+
+	if (SDL_Init(SDL_INIT_AUDIO)) {	//不为0--初始化失败
+		SDL_Log("Failed to initial...\n");
+		return;
+	}
+	SDL_Window* window_ = nullptr;
+	SDL_Renderer* renderer_ = nullptr;
+	SDL_Texture* texture_ = nullptr;
+	try
+	{
+		std::string fullpath(DIRECTORY + "/" + INPUTFILE_PCM);	//“/”别带有空格
+		if (!std::filesystem::exists(fullpath)) {
+			std::filesystem::create_directory(DIRECTORY);
+		}
+		std::ifstream ifs(fullpath, std::ios::binary);
+		if (!ifs.is_open()) {
+			throw std::ios_base::failure("Failed to open file:" + fullpath);
+		}
+		//std::shared_ptr<Uint8> Buff(new Uint8[BLOCK_SIZE], std::default_delete<Uint8[]>());
+		std::shared_ptr<Uint8[]> Buff = std::make_shared<Uint8[]>(BLOCK_SIZE);
+		
+		//声卡不断需求资源，调用回调函数
+		SDL_AudioSpec spec;
+		//检查好pcm的参数
+		spec.freq = FREQUENCE;	//采样率
+		spec.channels = CHANNELS;	//声道数量
+		//spec.silence = 0;
+		spec.format = AUDIO_S16SYS;	//采样大小
+		spec.callback = read_audio_data;	//回调函数(注意格式)
+		Usr_ptr_len usdata;
+		spec.userdata = &usdata;	//自定义参数，将局部参数传递给回调函数（传入地址），回调函数中会回调回来--对应回调函数的udata
+		if (SDL_OpenAudio(&spec, nullptr)) {	//返回0才代表成功
+			throw std::runtime_error("Failed to open audio");
+		}
+		SDL_PauseAudio(0);	//0为播放
+		//声卡需要数据时候会copy我们读出来的数据
+		//设定声卡读取的时候的参数
+		size_t buffer_len = 0;
+		usdata.audio_pos = Buff.get();
+		usdata.buffer_len = reinterpret_cast<Uint32*>(& buffer_len);
+		std::cout << "----------------------start to play pcm data------------------" << std::endl;
+		do 
+		{
+			//你可以声卡消耗多少数据就读多少数据
+			//你也可以先读一大段然后判断数据是否消耗完了，消耗完了再继续读取
+			ifs.read(reinterpret_cast<char*>(Buff.get()), BLOCK_SIZE);
+			buffer_len = ifs.gcount();
+			while (usdata.audio_pos < (Buff.get() + buffer_len)) {
+				SDL_Delay(1);
+			}
+
+		} while (buffer_len != 0);
+		//当声卡读完Buff的数据循环退出来到这里
+		//在后续的destroy_sdl()中有SDL_CloseAduio()
+		//可如果声卡数据块缓冲区还没有使用完这段数据就关闭了呢？
+		ifs.close();
+	}
+	catch (std::bad_alloc& e)
+	{
+		std::cerr << "Error:" << e.what() << std::endl;
+	}
+	catch (std::ios_base::failure& e)
+	{
+		std::cerr << "Error:" << e.what() << std::endl;
+	}
+	catch (std::exception& e)
+	{
+		std::cerr << "Error:" << e.what() << std::endl;
+	}
+
+	destroy_sdl(window_, renderer_, texture_);
+	return;
+}
+
 int main(int argc, char* argv[])
 {
 	//demo_first();
 
 	//demo_second();
 
-	yuv_player_demo();
+	//yuv_player_demo();
+
+	pcm_player_demo();
+
 	return 0;
 }

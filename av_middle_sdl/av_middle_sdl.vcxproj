@@ -108,6 +108,7 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>D:\Alearn\ACPP\store\YSP\FFmpeg-Learn\Exer_Code\av_middle_sdl\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -133,7 +134,16 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="fuction.cpp" />
+    <ClCompile Include="fuction.h">
+      <SubType>
+      </SubType>
+    </ClCompile>
     <ClCompile Include="main.cpp">
+      <SubType>
+      </SubType>
+    </ClCompile>
+    <ClCompile Include="source.h">
       <SubType>
       </SubType>
     </ClCompile>

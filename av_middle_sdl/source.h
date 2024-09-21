@@ -25,3 +25,9 @@ enum EventType {
 	REFRESH_EVENT = SDL_USEREVENT + 1,
 	QUIT_EVENT = SDL_USEREVENT + 2
 };
+typedef struct USERDATA_HEAD_LENGTH  
+{
+	//地址形式，可以灵活取数据(尤其是如果buffer_len会随时更新)
+	Uint8* audio_pos;
+	Uint32* buffer_len;
+}Usr_ptr_len;

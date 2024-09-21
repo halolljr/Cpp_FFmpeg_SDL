@@ -18,5 +18,14 @@
     <ClCompile Include="main.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="source.h">
+      <Filter>头文件</Filter>
+    </ClCompile>
+    <ClCompile Include="fuction.h">
+      <Filter>头文件</Filter>
+    </ClCompile>
+    <ClCompile Include="fuction.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
